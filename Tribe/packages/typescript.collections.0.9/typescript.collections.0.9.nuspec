@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>typescript.collections</id>
+    <version>0.9</version>
+    <title>TypeScript Generic Collections</title>
+    <authors>Basarat Ali Syed</authors>
+    <owners>Basarat Ali Syed</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/basarat/typescript-collections</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A complete, fully tested data structure library written in TypeScript.</description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <language />
+    <tags>typescript collections</tags>
+  </metadata>
+</package>
