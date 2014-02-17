@@ -1,5 +1,6 @@
 interface String {
-    format(...replacements: string[]): string;
+    //format(...replacements: string[]): string;
+    format(...replacements: any[]): string;
 }
 
 if (!String.prototype.format) {

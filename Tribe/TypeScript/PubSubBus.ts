@@ -1,3 +1,4 @@
+import _ = require("underscore");
 import lg = require("Logging");
 import cl = collections;
 
@@ -12,7 +13,7 @@ class Message {
         return JSON.parse(this._payload);
     }
 
-    toString(): string {
+    payloadAsString(): string {
         return this._payload;
     } 
 
@@ -28,6 +29,7 @@ class Subscriber {
         return this._guid;
     }
 
+    //return a promise???
     private _callback: (m: Message)=>Guid;
     get callback(): (m: Message)=>Guid {
         return this._callback;
@@ -50,18 +52,16 @@ class Channel {
         return this._guid;
     }
 
-    //make this a promise???
-    //array of string(message:json) => string(receipt:guid)
-    private _subscribers: Array<Subscriber>;
-    get subscribers(): Array<Subscriber> {
+    private _subscribers: Subscriber[];
+    get subscribers(): Subscriber[] {
         return this._subscribers;
     }
     addSubscriber(subscriber: Subscriber): void {
         this._subscribers.push(subscriber);
     }
 
-    private _messageHistory: Array<{ message: Message, recipients: cl.Dictionary<Guid, Guid> }>;
-    get messageHistory(): Array<{ message: Message, recipients: cl.Dictionary<Guid, Guid> }> {
+    private _messageHistory: { message: Message; recipients: cl.Dictionary<Guid, Guid> }[];
+    get messageHistory(): { message: Message; recipients: cl.Dictionary<Guid, Guid> }[] {
         return this._messageHistory;
     }
     recordMessage(message: Message, recipients: cl.Dictionary<Guid, Guid>): void {
@@ -78,7 +78,7 @@ class Channel {
 
 class PubSubBus {
     private _log: lg.ILogger;
-    private _channels: Array<Channel>;
+    private _channels: Channel[];
 
     constructor(logger:lg.ILogger = new lg.NullLogger()) {
         this._log = logger;
@@ -92,14 +92,16 @@ class PubSubBus {
         return channel.guid;
     }
 
-    clearTopics(): void {
+    clearChannels(): void {
         this._channels = [];
     }
 
-    listChannels(): Array<String> {
-        return this._channels.map((c: Channel) => c.name);
+    listChannels(): String[] {
+        return this._channels.map((c) => c.name);
     }
 
+    //move this to channel???
+    //return a promise???
     publish(fn: (c: Channel) => boolean, message: Message): cl.Dictionary<Guid, Guid> {
         var log = this._log;
         var allRecipients: cl.Dictionary<Guid, Guid> = new cl.Dictionary<Guid, Guid>();
@@ -107,9 +109,9 @@ class PubSubBus {
         try {
             var matches = this._channels.filter(fn);
 
-            matches.forEach((c:Channel) => {
+            matches.forEach((c) => {
                 var recipients = new cl.Dictionary<Guid, Guid>();
-                c.subscribers.forEach((s:Subscriber) => {
+                c.subscribers.forEach((s) => {
                     var receipt = s.callback(message);
                     recipients.setValue(s.guid, receipt);
                     allRecipients.setValue(s.guid, receipt);
@@ -126,12 +128,28 @@ class PubSubBus {
         return allRecipients;
     }
 
-    subscribe(fn: (c: Channel) => boolean, subscriber: Subscriber): boolean {
+    subscribe(match: any, subscriber: Subscriber): boolean {
+        var success = true;
+
+        if (_.isFunction(match)) {
+            success = this.subscribeFuzzy(match, subscriber);
+        }
+        else if (_.isString(match)) {
+            success = this.subscribeExact(match, subscriber);
+        }
+        else {
+            success = false;
+        }
+
+        return success;
+    }
+
+    private subscribeFuzzy(fn: (c: Channel) => boolean, subscriber: Subscriber): boolean {
         var success: boolean = true;
         var log = this._log;
 
         try {
-            this._channels.filter(fn).forEach((c:Channel) => {
+            this._channels.filter(fn).forEach((c) => {
                 c.addSubscriber(subscriber);
 
                 var len = c.messageHistory.length;
@@ -150,6 +168,42 @@ class PubSubBus {
 
         return success;
     }
+
+    private subscribeExact(name: string, subscriber: Subscriber): boolean {
+        var fn = (c: Channel) => {
+            return true;
+        }
+
+        return this.subscribeFuzzy(fn, subscriber);
+    }
+
+    unsubscribe(fn: (c:Channel) => boolean, subscriber: Subscriber): Channel[] {
+        var log = this._log;
+        var unsubList = <Channel[]>[];
+
+        try {
+            this._channels.filter(fn).forEach((c) => {
+                var newSubList = [];
+
+                c.subscribers.forEach((s) => {
+                    if (s.guid.value !== subscriber.guid.value) {
+                        newSubList.push(s);
+                    }
+                    else {
+                        unsubList.push(c);
+                        log.logLine('subscriber({0}) has unsubscriber from channel({1}: {2})'.format(s.guid, c.name, c.guid));
+                    }
+                });
+
+                c.subscribers = newSubList;
+            });
+        }
+        catch (e) {
+            log.logLine('error: {0}'.format(e));
+        }
+
+        return unsubList;
+    }
 }
 
 //function to create a function to check for an exact match
@@ -165,37 +219,6 @@ function regexMatchFN(match, field) {
     field = ((typeof field === 'undefined') ? 'name' : field);
     return new Function('p', 'return ' + match + '.test(p.' + field + ');');
 }
-
-//not required, but I added an unsubscribe function taking the guid returned during subscription
-//PubSubBus.prototype.unsubscribe = function (topicfn, guid) {
-//    var writer = this.writer;
-//    var unsubList = [];
-
-//    try {
-//        var topics = this.topics.filter(topicfn);
-
-//        topics.forEach(function (t) {
-//            var newSubList = [];
-
-//            t.subscribers.forEach(function (s) {
-//                if (s.guid !== guid) {
-//                    newSubList.push(s);
-//                }
-//                else {
-//                    unsubList.push(t.name);
-//                    writer.write('subscriber(' + guid + ') has unsubscriber from topic(' + t.name + ')');
-//                }
-//            });
-
-//            t.subscribers = newSubList;
-//        });
-//    }
-//    catch (e) {
-//        writer.write('error: ' + e);
-//    }
-
-//    return unsubList;
-//};
 
 //function createClient(title, leftOffset, topOffset, bus) {
 //    var uid = newGUID();
@@ -276,90 +299,86 @@ function regexMatchFN(match, field) {
 //}
 
 //run a set of tests against the bus.  Tests some things the UI can't (ends with regex)
-//function runTest(bus:PubSubBus, writer:lg.ILogger) {
-//    writer.clear();
-//    bus.clearTopics();
+function runTest(bus:PubSubBus, writer:lg.ILogger) {
+    //writer.clear();
+    bus.clearChannels();
 
-//    bus.addTopic('TestTopic');
-//    bus.addTopic('Test');
-//    bus.addTopic('Topic');
+    bus.addChannel('create');
+    bus.addChannel('update');
+    bus.addChannel('retrieve');
+    bus.addChannel('delete');
 
-//    writer.write('List Topics');
-//    writer.write('=====================');
-//    bus.listTopics().forEach(writer.write);
+    writer.logLine('List Channels');
+    writer.logLine('=====================');
+    bus.listChannels().forEach(writer.logLine);
+
+    var s1 = new Subscriber((m) => {
+        var receipt = new Guid();
+        writer.logLine('S1: received message (from: {0}, payload: {1}), returned receipt ({2})'.format(m.from, m.payloadAsString(), receipt));
+        return receipt;
+    });
+
+    var s2 = new Subscriber((m) => {
+        var receipt = new Guid();
+        writer.logLine('S2: received message (from: {0}, payload: {1}), returned receipt ({2})'.format(m.from, m.payloadAsString(), receipt));
+        return receipt;
+    });
+
+    var l1 = bus.subscribe('retireve', s1);
+    var l2 = bus.subscribe('update', s2);
 
 
-//    function listenerOne(message) {
-//        writer.write('TT: ' + JSON.stringify(message));
-//    }
+    //writer.write('');
+    //writer.write('Sunscribers');
+    //writer.write('=====================');
+    //writer.write('l1: ' + l1);
+    //writer.write('l2: ' + l2);
+    //writer.write('l3: ' + l3);
 
-//    function listenerTwo(message) {
-//        writer.write('Tst: ' + JSON.stringify(message));
-//    }
+    //writer.write('');
+    //writer.write('Publish to RegEx ^Test');
+    //writer.write('=====================');
+    //writer.write(bus.publish(regexMatchFN('/^Test/'), 'hello').join(', '));
 
-//    function listenerThree(message) {
-//        writer.write('Tpc: ' + JSON.stringify(message));
-//    }
+    //writer.write('');
+    //writer.write('Publish to Exact TestTopic');
+    //writer.write('=====================');
+    //writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello' }).join(', '));
 
-//    function listenerFour(message) {
-//        writer.write('New: ' + JSON.stringify(message));
-//    }
+    //writer.write('');
+    //writer.write('Publish to Exact Topic');
+    //writer.write('=====================');
+    //writer.write(bus.publish(exactMatchFN('Topic'), 555).join(', '));
 
-//    var l1 = bus.subscribe(exactMatchFN('TestTopic'), listenerOne);
-//    var l2 = bus.subscribe(exactMatchFN('Test'), listenerTwo);
-//    var l3 = bus.subscribe(regexMatchFN('/Topic$/'), listenerThree);
+    //writer.write('');
+    //writer.write('New Subscriber (Topic)');
+    //writer.write('=====================');
+    //var l4 = bus.subscribe(exactMatchFN('Topic'), listenerFour);
+    //writer.write('l4: ' + l4);
 
-//    writer.write('');
-//    writer.write('Sunscribers');
-//    writer.write('=====================');
-//    writer.write('l1: ' + l1);
-//    writer.write('l2: ' + l2);
-//    writer.write('l3: ' + l3);
+    //writer.write('');
+    //writer.write('New Subscriber, again (TestTopic)');
+    //writer.write('=====================');
+    //var l5 = bus.subscribe(exactMatchFN('TestTopic'), listenerFour);
+    //writer.write('l5: ' + l5);
 
-//    writer.write('');
-//    writer.write('Publish to RegEx ^Test');
-//    writer.write('=====================');
-//    writer.write(bus.publish(regexMatchFN('/^Test/'), 'hello').join(', '));
+    //writer.write('');
+    //writer.write('Publish to Exact TestTopic');
+    //writer.write('=====================');
+    //writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello again' }).join(', '));
 
-//    writer.write('');
-//    writer.write('Publish to Exact TestTopic');
-//    writer.write('=====================');
-//    writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello' }).join(', '));
+    //writer.write('');
+    //writer.write('Unsub l5(' + l5 + ') from Exact TestTopic');
+    //writer.write('=====================');
+    //writer.write(bus.unsubscribe(exactMatchFN('TestTopic'), l5).join(', '));
 
-//    writer.write('');
-//    writer.write('Publish to Exact Topic');
-//    writer.write('=====================');
-//    writer.write(bus.publish(exactMatchFN('Topic'), 555).join(', '));
+    //writer.write('');
+    //writer.write('Publish to Exact TestTopic');
+    //writer.write('=====================');
+    //writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello again again' }).join(', '));
 
-//    writer.write('');
-//    writer.write('New Subscriber (Topic)');
-//    writer.write('=====================');
-//    var l4 = bus.subscribe(exactMatchFN('Topic'), listenerFour);
-//    writer.write('l4: ' + l4);
-
-//    writer.write('');
-//    writer.write('New Subscriber, again (TestTopic)');
-//    writer.write('=====================');
-//    var l5 = bus.subscribe(exactMatchFN('TestTopic'), listenerFour);
-//    writer.write('l5: ' + l5);
-
-//    writer.write('');
-//    writer.write('Publish to Exact TestTopic');
-//    writer.write('=====================');
-//    writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello again' }).join(', '));
-
-//    writer.write('');
-//    writer.write('Unsub l5(' + l5 + ') from Exact TestTopic');
-//    writer.write('=====================');
-//    writer.write(bus.unsubscribe(exactMatchFN('TestTopic'), l5).join(', '));
-
-//    writer.write('');
-//    writer.write('Publish to Exact TestTopic');
-//    writer.write('=====================');
-//    writer.write(bus.publish(exactMatchFN('TestTopic'), { literal: 'hello again again' }).join(', '));
-
-//    bus.clearTopics();
-//}
+    //bus.clearTopics();
+}
 
 //$(document).ready(function () {
 //    var output = $('#output');

@@ -15,21 +15,21 @@ module collections {
     * = 0 means they are equal
     * >0 means a is larger
     */
-    export interface ICompareFunction<T>{
+    export interface ICompareFunction<T> {
         (a: T, b: T): number;
     }
 
     /**
     * Function signature for checking equality
     */
-    export interface IEqualsFunction<T>{
+    export interface IEqualsFunction<T> {
         (a: T, b: T): boolean;
     }
 
     /**
     * Function signature for Iterations. Return false to break from loop
     */
-    export interface ILoopFunction<T>{
+    export interface ILoopFunction<T> {
         (a: T): boolean;
     }
 
@@ -59,7 +59,7 @@ module collections {
      * Default function to convert an object to a string.
      * @function     
      */
-    export function defaultToString(item): string {
+    export function defaultToString(item: any): string {
         if (item === null) {
             return 'COLLECTION_NULL';
         } else if (collections.isUndefined(item)) {
@@ -74,7 +74,7 @@ module collections {
     /**
     * Joins all the properies of the object using the provided join string 
     */
-    export function toString<T>(item: T, join: string = ","): string {
+    export function makeString<T>(item: T, join: string = ","): string {
         if (item === null) {
             return 'COLLECTION_NULL';
         } else if (collections.isUndefined(item)) {
@@ -101,7 +101,7 @@ module collections {
      * Checks if the given argument is a function.
      * @function     
      */
-    export function isFunction(func): boolean {
+    export function isFunction(func: any): boolean {
         return (typeof func) === 'function';
     }
 
@@ -109,7 +109,7 @@ module collections {
      * Checks if the given argument is undefined.
      * @function
      */
-    export function isUndefined(obj): boolean {
+    export function isUndefined(obj: any): boolean {
         return (typeof obj) === 'undefined';
     }
 
@@ -117,7 +117,7 @@ module collections {
      * Checks if the given argument is a string.
      * @function
      */
-    export function isString(obj): boolean {
+    export function isString(obj: any): boolean {
         return Object.prototype.toString.call(obj) === '[object String]';
     }
 
@@ -328,7 +328,7 @@ module collections {
 
 
     // A linked list node
-    export interface ILinkedListNode<T>{
+    export interface ILinkedListNode<T> {
         element: T;
         next: ILinkedListNode<T>;
     }
@@ -523,8 +523,8 @@ module collections {
             if (this.nElements < 1 || collections.isUndefined(item)) {
                 return false;
             }
-            var previous = null;
-            var currentNode = this.firstNode;
+            var previous: ILinkedListNode<T> = null;
+            var currentNode: ILinkedListNode<T> = this.firstNode;
 
             while (currentNode !== null) {
                 if (equalsF(currentNode.element, item)) {
@@ -604,7 +604,7 @@ module collections {
             if (index < 0 || index >= this.nElements) {
                 return undefined;
             }
-            var element;
+            var element: T;
             if (this.nElements === 1) {
                 //First node in the list.
                 element = this.firstNode.element;
@@ -649,9 +649,9 @@ module collections {
          * element first, and the first element last).
          */
         reverse(): void {
-            var previous = null;
-            var current = this.firstNode;
-            var temp = null;
+            var previous: ILinkedListNode<T> = null;
+            var current: ILinkedListNode<T> = this.firstNode;
+            var temp: ILinkedListNode<T> = null;
             while (current !== null) {
                 temp = current.next;
                 current.next = previous;
@@ -702,7 +702,7 @@ module collections {
         /**
          * @private
          */
-        private nodeAtIndex(index): ILinkedListNode<T> {
+        private nodeAtIndex(index: number): ILinkedListNode<T> {
 
             if (index < 0 || index >= this.nElements) {
                 return null;
@@ -731,7 +731,7 @@ module collections {
 
 
     // Used internally by dictionary 
-    interface IDicitonaryPair<K, V>{
+    interface IDictionaryPair<K, V> {
         key: K;
         value: V;
     }
@@ -743,7 +743,7 @@ module collections {
          * @type {Object}
          * @private
          */
-        private table: { [key: string]: IDicitonaryPair<K, V> };
+        private table: { [key: string]: IDictionaryPair<K, V> };
         //: [key: K] will not work since indices can only by strings in javascript and typescript enforces this. 
 
         /**
@@ -794,7 +794,7 @@ module collections {
          * undefined if the map contains no mapping for this key.
          */
         getValue(key: K): V {
-            var pair: IDicitonaryPair<K, V> = this.table[this.toStr(key)];
+            var pair: IDictionaryPair<K, V> = this.table[this.toStr(key)];
             if (collections.isUndefined(pair)) {
                 return undefined;
             }
@@ -818,9 +818,9 @@ module collections {
                 return undefined;
             }
 
-            var ret;
+            var ret: V;
             var k = this.toStr(key);
-            var previousElement: IDicitonaryPair<K, V> = this.table[k];
+            var previousElement: IDictionaryPair<K, V> = this.table[k];
             if (collections.isUndefined(previousElement)) {
                 this.nElements++;
                 ret = undefined;
@@ -843,7 +843,7 @@ module collections {
          */
         remove(key: K): V {
             var k = this.toStr(key);
-            var previousElement: IDicitonaryPair<K, V> = this.table[k];
+            var previousElement: IDictionaryPair<K, V> = this.table[k];
             if (!collections.isUndefined(previousElement)) {
                 delete this.table[k];
                 this.nElements--;
@@ -860,7 +860,7 @@ module collections {
             var array: K[] = [];
             for (var name in this.table) {
                 if (this.table.hasOwnProperty(name)) {
-                    var pair: IDicitonaryPair<K, V> = this.table[name];
+                    var pair: IDictionaryPair<K, V> = this.table[name];
                     array.push(pair.key);
                 }
             }
@@ -875,7 +875,7 @@ module collections {
             var array: V[] = [];
             for (var name in this.table) {
                 if (this.table.hasOwnProperty(name)) {
-                    var pair: IDicitonaryPair<K, V> = this.table[name];
+                    var pair: IDictionaryPair<K, V> = this.table[name];
                     array.push(pair.value);
                 }
             }
@@ -892,7 +892,7 @@ module collections {
         forEach(callback: (key: K, value: V) => any): void {
             for (var name in this.table) {
                 if (this.table.hasOwnProperty(name)) {
-                    var pair: IDicitonaryPair<K, V> = this.table[name];
+                    var pair: IDictionaryPair<K, V> = this.table[name];
                     var ret = callback(pair.key, pair.value);
                     if (ret === false) {
                         return;
@@ -977,13 +977,14 @@ module collections {
         private dict: Dictionary<K, Array<V>>;
         private equalsF: IEqualsFunction<V>;
         private allowDuplicate: boolean;
+
         /**
-         * Creates an empty multi dictionary. 
+         * Creates an empty multi dictionary.
          * @class <p>A multi dictionary is a special kind of dictionary that holds
-         * multiple values against each key. Setting a value into the dictionary will 
+         * multiple values against each key. Setting a value into the dictionary will
          * add the value to an array at that key. Getting a key will return an array,
-         * holding all the values set to that key. 
-         * You can configure to allow duplicates in the values. 
+         * holding all the values set to that key.
+         * You can configure to allow duplicates in the values.
          * This implementation accepts any kind of objects as keys.</p>
          *
          * <p>If the keys are custom objects a function which converts keys to strings must be
@@ -991,16 +992,16 @@ module collections {
          *
          * <pre>
          * function petToString(pet) {
-         *  return pet.name;
-         * }
+           *  return pet.name;
+           * }
          * </pre>
          * <p>If the values are custom objects a function to check equality between values
          * must be provided. Example:</p>
          *
          * <pre>
          * function petsAreEqualByAge(pet1,pet2) {
-         *  return pet1.age===pet2.age;
-         * }
+           *  return pet1.age===pet2.age;
+           * }
          * </pre>
          * @constructor
          * @param {function(Object):string=} toStrFunction optional function
@@ -1009,7 +1010,8 @@ module collections {
          * unique string must be provided.
          * @param {function(Object,Object):boolean=} valuesEqualsFunction optional
          * function to check if two values are equal.
-         * 
+         *
+         * @param allowDuplicateValues
          */
         constructor(toStrFunction?: (key: K) => string, valuesEqualsFunction?: IEqualsFunction<V>, allowDuplicateValues = false) {
             this.dict = new Dictionary<K, Array<V>>(toStrFunction);
@@ -1073,10 +1075,7 @@ module collections {
         remove(key: K, value?: V): boolean {
             if (collections.isUndefined(value)) {
                 var v = this.dict.remove(key);
-                if (collections.isUndefined(v)) {
-                    return false;
-                }
-                return true;
+                return !collections.isUndefined(v);
             }
             var array = this.dict.getValue(key);
             if (collections.arrays.remove(array, value, this.equalsF)) {
@@ -1102,7 +1101,7 @@ module collections {
          */
         values(): V[] {
             var values = this.dict.values();
-            var array = [];
+            var array: Array<V> = [];
             for (var i = 0; i < values.length; i++) {
                 var v = values[i];
                 for (var j = 0; j < v.length; j++) {
@@ -1127,7 +1126,7 @@ module collections {
          * Removes all mappings from this dictionary.
          */
         clear(): void {
-            return this.dict.clear();
+            this.dict.clear();
         }
 
         /**
@@ -1508,7 +1507,7 @@ module collections {
          * @constructor
          */
         constructor() {
-            this.list = new LinkedList();
+            this.list = new LinkedList<T>();
         }
 
 
@@ -1795,7 +1794,7 @@ module collections {
                 if (!otherSet.contains(element)) {
                     set.remove(element);
                 }
-                return;
+                return true;
             });
         }
 
@@ -1808,7 +1807,7 @@ module collections {
             var set = this;
             otherSet.forEach(function (element: T): boolean {
                 set.add(element);
-                return;
+                return true;
             });
         }
 
@@ -1821,7 +1820,7 @@ module collections {
             var set = this;
             otherSet.forEach(function (element: T): boolean {
                 set.remove(element);
-                return;
+                return true;
             });
         }
 
@@ -1842,6 +1841,7 @@ module collections {
                     isSub = false;
                     return false;
                 }
+                return true;
             });
             return isSub;
         }
@@ -2031,7 +2031,7 @@ module collections {
          * @return {Array} an array containing all of the elements in this bag.
          */
         toArray(): T[] {
-            var a = [];
+            var a: Array<T> = [];
             var values = this.dictionary.values();
             var vl = values.length;
             for (var i = 0; i < vl; i++) {
@@ -2107,7 +2107,7 @@ module collections {
 
 
     // Internal interface for BST 
-    interface BSTreeNode<T>{
+    interface BSTreeNode<T> {
         element: T;
         leftCh: BSTreeNode<T>;
         rightCh: BSTreeNode<T>;
@@ -2311,10 +2311,10 @@ module collections {
          * @return {Array} an array containing all of the elements in this tree in in-order.
          */
         toArray(): T[] {
-            var array = [];
+            var array: Array<T> = [];
             this.inorderTraversal(function (element: T): boolean {
                 array.push(element);
-                return;
+                return true;
             });
             return array;
         }
@@ -2331,7 +2331,7 @@ module collections {
         * @private
         */
         private searchNode(node: BSTreeNode<T>, element: T): BSTreeNode<T> {
-            var cmp = null;
+            var cmp: number = null;
             while (node !== null && cmp !== 0) {
                 cmp = this.compare(element, node.element);
                 if (cmp < 0) {
@@ -2402,7 +2402,7 @@ module collections {
         * @private
         */
         private levelTraversalAux(node: BSTreeNode<T>, callback: ILoopFunction<T>) {
-            var queue = new Queue();
+            var queue = new Queue<BSTreeNode<T>>();
             if (node !== null) {
                 queue.enqueue(node);
             }
@@ -2476,23 +2476,8 @@ module collections {
         }
 
         /**
-        * @private
-        */
-        private successorNode(node: BSTreeNode<T>): BSTreeNode<T> {
-            if (node.rightCh !== null) {
-                return this.minimumAux(node.rightCh);
-            }
-            var successor = node.parent;
-            while (successor !== null && node === successor.rightCh) {
-                node = successor;
-                successor = node.parent;
-            }
-            return successor;
-        }
-
-        /**
-        * @private
-        */
+          * @private
+          */
         private heightAux(node: BSTreeNode<T>): number {
             if (node === null) {
                 return -1;
@@ -2505,9 +2490,9 @@ module collections {
         */
         private insertNode(node: BSTreeNode<T>): BSTreeNode<T> {
 
-            var parent = null;
+            var parent: any = null;
             var position = this.root;
-            var cmp = null;
+            var cmp: number = null;
             while (position !== null) {
                 cmp = this.compare(node.element, position.element);
                 if (cmp === 0) {
