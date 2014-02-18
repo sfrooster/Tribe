@@ -24,7 +24,10 @@ namespace App.Tribe
                 "~/scripts/services.js",
                 "~/scripts/directives.js",
                 "~/scripts/controllers.js",
-                "~/scripts/app.js"));
+                "~/scripts/app.js",
+                "~/scripts/polyfills.js"));
+
+            //bundles.Add(new ScriptBundle("~/js/polyfill").Include());
         }
     }
 }

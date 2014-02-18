@@ -534,6 +534,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Scripts\collections.ts" />
+    <TypeScriptCompile Include="Scripts\Guid.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-cookies.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-mocks.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-resource.d.ts" />

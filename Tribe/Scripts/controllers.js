@@ -34,6 +34,8 @@ angular.module('app.controllers', [])
 
             //var bus: ps.PubSubBus = new ps.PubSubBus(log);
             var bus = new PubSubBus(log);
+
+            runTest(bus, log);
         };
         $scope.$on('$viewContentLoaded', function () {
             $window.ga('send', 'pageview', { 'page': $location.path(), 'title': $scope.$root.title });
