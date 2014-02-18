@@ -23,7 +23,6 @@
     <WebGreaseLibPath>packages\WebGrease.1.5.2\lib</WebGreaseLibPath>
     <TargetFrameworkProfile />
     <TypeScriptToolsVersion>0.9</TypeScriptToolsVersion>
-    <TypeScriptOutDir>C:\Users\Michael\Documents\GitHub\Tribe\Tribe\Scripts\build</TypeScriptOutDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -506,6 +505,7 @@
     <Content Include="Views\_Layout.cshtml" />
     <Content Include="Views\_PageStart.cshtml" />
     <Content Include="Views\About.cshtml" />
+    <Content Include="Views\PubSub.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -527,7 +527,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Images\" />
-    <Folder Include="Scripts\build\" />
     <Folder Include="Views\Shared\" />
   </ItemGroup>
   <ItemGroup>
@@ -544,9 +543,10 @@
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\underscore\underscore.d.ts" />
-    <TypeScriptCompile Include="TypeScript\Logging.ts" />
-    <TypeScriptCompile Include="TypeScript\Polyfills.ts" />
-    <TypeScriptCompile Include="TypeScript\PubSubBus.ts" />
+    <TypeScriptCompile Include="Scripts\Logging.ts" />
+    <TypeScriptCompile Include="Scripts\Polyfills.ts" />
+    <TypeScriptCompile Include="Scripts\PubSub.ts" />
+    <TypeScriptCompile Include="Scripts\PubSubBus.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

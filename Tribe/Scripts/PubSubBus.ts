@@ -1,6 +1,18 @@
-import _ = require("underscore");
-import lg = require("Logging");
-import cl = collections;
+//import _ = underscore;
+//import lg = require("Logging");
+//import cl = collections;
+
+/// <reference path="collections.ts" />
+
+interface ILogger {
+    addTag(tag: string): void;
+    logLine(line: string): void;
+}
+
+class NullLogger implements ILogger {
+    addTag(tag: string) { }
+    logLine(line: string) { }
+}
 
 class Message {
     private _from: Guid;
@@ -60,11 +72,11 @@ class Channel {
         this._subscribers.push(subscriber);
     }
 
-    private _messageHistory: { message: Message; recipients: cl.Dictionary<Guid, Guid> }[];
-    get messageHistory(): { message: Message; recipients: cl.Dictionary<Guid, Guid> }[] {
+    private _messageHistory: { message: Message; recipients: collections.Dictionary<Guid, Guid> }[];
+    get messageHistory(): { message: Message; recipients: collections.Dictionary<Guid, Guid> }[] {
         return this._messageHistory;
     }
-    recordMessage(message: Message, recipients: cl.Dictionary<Guid, Guid>): void {
+    recordMessage(message: Message, recipients: collections.Dictionary<Guid, Guid>): void {
         this._messageHistory.push({ message: message, recipients: recipients });
     }
 
@@ -77,10 +89,10 @@ class Channel {
 }
 
 class PubSubBus {
-    private _log: lg.ILogger;
+    private _log: ILogger;
     private _channels: Channel[];
 
-    constructor(logger:lg.ILogger = new lg.NullLogger()) {
+    constructor(logger:ILogger = new NullLogger()) {
         this._log = logger;
         this._channels = [];
     }
@@ -102,15 +114,15 @@ class PubSubBus {
 
     //move this to channel???
     //return a promise???
-    publish(fn: (c: Channel) => boolean, message: Message): cl.Dictionary<Guid, Guid> {
+    publish(fn: (c: Channel) => boolean, message: Message): collections.Dictionary<Guid, Guid> {
         var log = this._log;
-        var allRecipients: cl.Dictionary<Guid, Guid> = new cl.Dictionary<Guid, Guid>();
+        var allRecipients: collections.Dictionary<Guid, Guid> = new collections.Dictionary<Guid, Guid>();
 
         try {
             var matches = this._channels.filter(fn);
 
             matches.forEach((c) => {
-                var recipients = new cl.Dictionary<Guid, Guid>();
+                var recipients = new collections.Dictionary<Guid, Guid>();
                 c.subscribers.forEach((s) => {
                     var receipt = s.callback(message);
                     recipients.setValue(s.guid, receipt);
@@ -299,7 +311,7 @@ function regexMatchFN(match, field) {
 //}
 
 //run a set of tests against the bus.  Tests some things the UI can't (ends with regex)
-function runTest(bus:PubSubBus, writer:lg.ILogger) {
+function runTest(bus:PubSubBus, writer:ILogger) {
     //writer.clear();
     bus.clearChannels();
 

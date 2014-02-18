@@ -1,0 +1,12 @@
+﻿@{
+    PageData["title"] = "AngularJS SPA | PubSub Test";
+}
+<h2>PubSub Bus</h2>
+<div id="output" style="height: 300px; overflow-y:auto;"></div>
+<input id="btnRunTest" type="button" value="Test" data-ng-click="btnRunTest_Click()" /><input id="btnClear" type="button" value="Clear" />
+
+@section typescript {
+    <script src="/scripts/underscore.js"></script>
+    @*<script src="/scripts/logging.js"></script>*@
+    <script src="/scripts/pubsubbus.js"></script>
+}

@@ -21,6 +21,25 @@ angular.module('app.controllers', [])
         });
     }])
 
+    // Path: /pubsub
+    .controller('PubSubCtrl', ['$scope', '$location', '$window', function ($scope, $location, $window) {
+        $scope.$root.title = 'AngularJS SPA | PubSub';
+        $scope.btnRunTest_Click = function () {
+            var log = {
+                addTag: function (tag) { },
+                logLine: function (line) {
+                    $scope.buslog = ($scope.buslog || '') + line + '\n';
+                }
+            };
+
+            //var bus: ps.PubSubBus = new ps.PubSubBus(log);
+            var bus = new PubSubBus(log);
+        };
+        $scope.$on('$viewContentLoaded', function () {
+            $window.ga('send', 'pageview', { 'page': $location.path(), 'title': $scope.$root.title });
+        });
+    }])
+
     // Path: /login
     .controller('LoginCtrl', ['$scope', '$location', '$window', function ($scope, $location, $window) {
         $scope.$root.title = 'AngularJS SPA | Sign In';

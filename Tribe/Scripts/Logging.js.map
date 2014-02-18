@@ -1,0 +1,1 @@
+{"version":3,"file":"Logging.js","sourceRoot":"","sources":["Logging.ts"],"names":["NullLogger","NullLogger.constructor","NullLogger.addTag","NullLogger.logLine"],"mappings":"AAAA;IAKA;QAAAA;;AAGCA,QAFGA,8BAAAA,UAAOA,GAAWA;QAAIE,CAACA;QACvBF,+BAAAA,UAAQA,IAAYA;QAAIG,CAACA;QAC7BH,kBAACA;IAADA,CAACA,IAAA;IAHD,gCAGC;GAAA"}
